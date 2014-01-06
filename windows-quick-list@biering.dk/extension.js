@@ -51,7 +51,7 @@ const WindowsQuickListMenuItem = new Lang.Class({
 		let box = new St.BoxLayout({ style_class: 'popup-combobox-item' });
 		box.add(icon);
 		box.add(new St.Label({ text: text }));
-		this.addActor(box);
+		this.actor.add(box);
 
 		this.connect('activate', Lang.bind(this, this._restoreWindow));
 	},
@@ -78,8 +78,10 @@ const WindowsQuickListMenuTitle = new Lang.Class({
 
 		let box = new St.BoxLayout({ style_class: 'popup-subtitle-menu-item' });
 		box.add(new St.Label({ text: text }));
-		this.addActor(box);
-		this.setShowDot(active);
+		this.actor.add(box);
+		if (active) {
+			this.setOrnament(PopupMenu.Ornament.DOT);
+		}
 
 		if (this._workspace_index > -1) {
 			this.connect('activate', Lang.bind(this, this._restoreWindow));
@@ -96,14 +98,22 @@ const WindowsQuickListMenuTitle = new Lang.Class({
 const WindowsQuickListIndicator = new Lang.Class({
 
 	Name: 'WindowsQuickListIndicator',
-	Extends: PanelMenu.SystemStatusButton,
+	Extends: PanelMenu.Button,
 
 	_init: function() {
 
 		Gtk.IconTheme.get_default().append_search_path(
 			ExtensionUtils.getCurrentExtension().dir.get_path());
 
-		this.parent('windows-quick-list-symbolic', _("Windows Quick List"));
+		this.parent(null, _("Windows Quick List"));
+
+		this._icon = new St.Icon({
+			icon_name: 'windows-quick-list-symbolic',
+			style_class: 'system-status-icon'
+		});
+
+		this.actor.add_actor(this._icon);
+		this.actor.add_style_class_name('panel-status-button');
 
 		this.actor.connect('button-press-event', Lang.bind(this, this._updateWindowList));
 		this._updateWindowList();
