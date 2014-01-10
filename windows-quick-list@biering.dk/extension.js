@@ -22,10 +22,8 @@ WindowsQuickListExtension.prototype = {
 
 	enable: function() {
 		if (this._indicator === null) {
-			Main.sessionMode.panel.right.push('windows-quick-list');
-
 			this._indicator = new WindowsQuickListIndicator();
-			Main.panel.addToStatusArea("windows-quick-list", this._indicator, 9999, "right");
+			Main.panel.addToStatusArea("windows-quick-list", this._indicator);
 		}
 	},
 
