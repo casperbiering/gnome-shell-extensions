@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions-change-volume-step">
+  <schema path="/org/gnome/shell/extensions/change-volume-step/" id="org.gnome.shell.extensions.change-volume-step">
+    <key type="d" name="delta-multiplier">
+        <default>0.5</default>
+        <summary>Delta multiplier</summary>
+        <description>The value the normal delta should be multiplied</description>
+    </key>
+  </schema>
+</schemalist>
