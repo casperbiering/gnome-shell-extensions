@@ -1,7 +1,20 @@
 {
 	"description": "Adds an icon to the top bar showing a list of all windows",
 	"name": "Windows Quick List",
-	"shell-version": [ "3.10", "3.12", "3.14", "3.16", "3.18", "3.20" ],
+	"shell-version": [
+		"3.10",
+		"3.12",
+		"3.14",
+		"3.16",
+		"3.18",
+		"3.20",
+		"3.22",
+		"3.24",
+		"3.26",
+		"3.28",
+		"3.30",
+		"3.32"
+	],
 	"url": "http://github.com/casperbiering/gnome-shell-extensions",
 	"uuid": "windows-quick-list@biering.dk",
 	"version": 3
