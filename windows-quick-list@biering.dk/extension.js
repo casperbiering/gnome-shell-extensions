@@ -91,10 +91,6 @@ const WindowsQuickListIndicator = new Lang.Class({
 		this._updateWindowList();
 	},
 
-	onDestory: function() {
-		global.workspace_manager.disconnect(this._restackedId);
-	},
-
 	_updateWindowList: function() {
 		this.menu.removeAll();
 
