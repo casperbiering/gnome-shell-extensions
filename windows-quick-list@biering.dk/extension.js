@@ -10,32 +10,6 @@ const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Gtk = imports.gi.Gtk;
 
-function WindowsQuickListExtension() {
-	this._init();
-}
-
-WindowsQuickListExtension.prototype = {
-
-	_init: function() {
-		this._indicator = null;
-	},
-
-	enable: function() {
-		if (this._indicator === null) {
-			this._indicator = new WindowsQuickListIndicator();
-			Main.panel.addToStatusArea("windows-quick-list", this._indicator);
-		}
-	},
-
-	disable: function() {
-		if (this._indicator !== null) {
-			this._indicator.destroy();
-			this._indicator = null;
-		}
-	}
-
-}
-
 const WindowsQuickListMenuItem = new Lang.Class({
 
 	Name: 'WindowsQuickListMenuItem',
@@ -88,7 +62,7 @@ const WindowsQuickListMenuTitle = new Lang.Class({
 
 	_restoreWindow: function() {
 		let time = global.get_current_time();
-		global.screen.get_workspace_by_index(this._workspace_index).activate(time);
+		global.workspace_manager.get_workspace_by_index(this._workspace_index).activate(time);
 	}
 
 });
@@ -118,20 +92,20 @@ const WindowsQuickListIndicator = new Lang.Class({
 	},
 
 	onDestory: function() {
-		global.screen.disconnect(this._restackedId);
+		global.workspace_manager.disconnect(this._restackedId);
 	},
 
 	_updateWindowList: function() {
 		this.menu.removeAll();
 
-		let workspace = global.screen.get_active_workspace();
+		let workspace = global.workspace_manager.get_active_workspace();
 		let windows = workspace.list_windows().filter( function(w){
 			return !w.is_skip_taskbar() && w.is_on_all_workspaces();
 		} );
 		this._addWorkspaceWindows(windows, true, -1);
 
-		for (let i = 0; i < global.screen.get_n_workspaces(); ++i) {
-			let workspace = global.screen.get_workspace_by_index(i);
+		for (let i = 0; i < global.workspace_manager.get_n_workspaces(); ++i) {
+			let workspace = global.workspace_manager.get_workspace_by_index(i);
 			let windows = workspace.list_windows().filter( function(w){
 				return !w.is_skip_taskbar() && !w.is_on_all_workspaces();
 			} );
@@ -151,7 +125,7 @@ const WindowsQuickListIndicator = new Lang.Class({
 
 	_addWorkspaceWindows: function(windows, show_sticky, workspace_index) {
 		let tracker = Shell.WindowTracker.get_default();
-		let active_workspace_index = global.screen.get_active_workspace().index();
+		let active_workspace_index = global.workspace_manager.get_active_workspace().index();
 
 		if (windows.length < 1) {
 			return;
@@ -182,6 +156,21 @@ const WindowsQuickListIndicator = new Lang.Class({
 
 });
 
+let indicator = null;
+
 function init() {
-	return new WindowsQuickListExtension();
+}
+
+function enable() {
+	if (indicator === null) {
+		indicator = new WindowsQuickListIndicator();
+		Main.panel.addToStatusArea("windows-quick-list", indicator);
+	}
+}
+
+function disable() {
+	if (indicator !== null) {
+		indicator.destroy();
+		indicator = null;
+	}
 }
