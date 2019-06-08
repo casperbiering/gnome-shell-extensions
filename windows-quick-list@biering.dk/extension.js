@@ -1,34 +1,38 @@
-const Lang = imports.lang;
-
-const St = imports.gi.St;
-const Shell = imports.gi.Shell;
+const { Clutter, Gio, GObject, Shell, St } = imports.gi;
 
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Gtk = imports.gi.Gtk;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 
-const WindowsQuickListMenuItem = new Lang.Class({
+function l() {
+  let args = Array.from(arguments);
+  args.unshift('windows-quick-list');
+  log.apply(this, args);
+}
 
-	Name: 'WindowsQuickListMenuItem',
-	Extends: PopupMenu.PopupBaseMenuItem,
+var WindowsQuickListMenuItem = class extends PopupMenu.PopupBaseMenuItem {
 
-	_init: function(icon, text, window) {
-		this.parent();
+	constructor(icon, text, window) {
+		super();
 
 		this._window = window;
+		this.icon = icon;
 
-		let box = new St.BoxLayout({ style_class: 'popup-combobox-item' });
-		box.add(icon);
-		box.add(new St.Label({ text: text }));
-		this.actor.add(box);
+		this.icon.add_style_class_name('popup-menu-icon');
+		this.actor.add_child(this.icon);
 
-		this.connect('activate', Lang.bind(this, this._restoreWindow));
-	},
+		this.label = new St.Label({ text: text,
+            y_expand: true,
+            y_align: Clutter.ActorAlign.CENTER });
+		this.actor.add_child(this.label);
+		this.actor.label_actor = this.label;
 
-	_restoreWindow: function() {
+		this.connect('activate', this._restoreWindow.bind(this));
+	}
+
+	_restoreWindow() {
 		let time = global.get_current_time();
 		if (!this._window.is_on_all_workspaces()) {
 			this._window.get_workspace().activate(time);
@@ -36,62 +40,56 @@ const WindowsQuickListMenuItem = new Lang.Class({
 		this._window.activate(time);
 	}
 
-});
+};
 
-const WindowsQuickListMenuTitle = new Lang.Class({
+var WindowsQuickListMenuTitle = class extends PopupMenu.PopupBaseMenuItem {
 
-	Name: 'WindowsQuickListMenuTitle',
-	Extends: PopupMenu.PopupBaseMenuItem,
-
-	_init: function(text, workspace_index, active) {
-		this.parent({ reactive: false });
+	constructor(text, workspace_index, active) {
+		super();
 
 		this._workspace_index = workspace_index;
 
-		let box = new St.BoxLayout({ style_class: 'popup-subtitle-menu-item' });
-		box.add(new St.Label({ text: text }));
-		this.actor.add(box);
+		this.label = new St.Label({ text: text,
+			style_class: 'windows-quick-list-title' });
+		this.actor.add(this.label);
+		this.actor.label_actor = this.label;
+
 		if (active) {
 			this.setOrnament(PopupMenu.Ornament.DOT);
 		}
 
 		if (this._workspace_index > -1) {
-			this.connect('activate', Lang.bind(this, this._restoreWindow));
+			this.connect('activate', this._restoreWindow.bind(this));
 		}
-	},
+	}
 
-	_restoreWindow: function() {
+	_restoreWindow() {
 		let time = global.get_current_time();
 		global.workspace_manager.get_workspace_by_index(this._workspace_index).activate(time);
 	}
 
-});
+};
 
-const WindowsQuickListIndicator = new Lang.Class({
+const WindowsQuickListIndicator = GObject.registerClass(
+class WindowsQuickListIndicator extends PanelMenu.Button {
 
-	Name: 'WindowsQuickListIndicator',
-	Extends: PanelMenu.Button,
+	_init() {
 
-	_init: function() {
-
-		Gtk.IconTheme.get_default().append_search_path(
-			ExtensionUtils.getCurrentExtension().dir.get_path());
-
-		this.parent(null, _("Windows Quick List"));
+		super._init(null, _("Windows Quick List"));
 
 		this._icon = new St.Icon({
-			icon_name: 'windows-quick-list-symbolic',
 			style_class: 'system-status-icon'
 		});
+		this._icon.gicon = Gio.icon_new_for_string(`${Me.path}/windows-quick-list-symbolic.svg`);
 
 		this.actor.add_actor(this._icon);
 		this.actor.add_style_class_name('panel-status-button');
 
-		this.actor.connect('button-press-event', Lang.bind(this, this._updateWindowList));
+		this.actor.connect('button-press-event', this._updateWindowList.bind(this));
 		this._updateWindowList();
-	},
+	}
 
-	_updateWindowList: function() {
+	_updateWindowList() {
 		this.menu.removeAll();
 
 		let workspace = global.workspace_manager.get_active_workspace();
@@ -117,9 +115,9 @@ const WindowsQuickListIndicator = new Lang.Class({
 			let menuTitle = new WindowsQuickListMenuTitle('No open windows', -1, false);
 			this.menu.addMenuItem(menuTitle);
 		}
-	},
+	}
 
-	_addWorkspaceWindows: function(windows, show_sticky, workspace_index) {
+	_addWorkspaceWindows(windows, show_sticky, workspace_index) {
 		let tracker = Shell.WindowTracker.get_default();
 		let active_workspace_index = global.workspace_manager.get_active_workspace().index();
 
@@ -154,19 +152,15 @@ const WindowsQuickListIndicator = new Lang.Class({
 
 let indicator = null;
 
-function init() {
+function init(extensionMeta) {
 }
 
 function enable() {
-	if (indicator === null) {
-		indicator = new WindowsQuickListIndicator();
-		Main.panel.addToStatusArea("windows-quick-list", indicator);
-	}
+	indicator = new WindowsQuickListIndicator();
+	Main.panel.addToStatusArea("windows-quick-list", indicator);
 }
 
 function disable() {
-	if (indicator !== null) {
-		indicator.destroy();
-		indicator = null;
-	}
+	indicator.destroy();
+	indicator = null;
 }
