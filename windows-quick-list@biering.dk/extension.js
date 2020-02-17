@@ -12,10 +12,11 @@ function l() {
   log.apply(this, args);
 }
 
-var WindowsQuickListMenuItem = class extends PopupMenu.PopupBaseMenuItem {
+const WindowsQuickListMenuItem = GObject.registerClass(
+class WindowsQuickListMenuItem extends PopupMenu.PopupBaseMenuItem {
 
-	constructor(icon, text, window) {
-		super();
+	_init(icon, text, window) {
+		super._init({});
 
 		this._window = window;
 		this.icon = icon;
@@ -40,12 +41,13 @@ var WindowsQuickListMenuItem = class extends PopupMenu.PopupBaseMenuItem {
 		this._window.activate(time);
 	}
 
-};
+});
 
-var WindowsQuickListMenuTitle = class extends PopupMenu.PopupBaseMenuItem {
+const WindowsQuickListMenuTitle = GObject.registerClass(
+class WindowsQuickListMenuTitle extends PopupMenu.PopupBaseMenuItem {
 
-	constructor(text, workspace_index, active) {
-		super();
+	_init(text, workspace_index, active) {
+		super._init({});
 
 		this._workspace_index = workspace_index;
 
@@ -68,7 +70,7 @@ var WindowsQuickListMenuTitle = class extends PopupMenu.PopupBaseMenuItem {
 		global.workspace_manager.get_workspace_by_index(this._workspace_index).activate(time);
 	}
 
-};
+});
 
 const WindowsQuickListIndicator = GObject.registerClass(
 class WindowsQuickListIndicator extends PanelMenu.Button {
